@@ -1,0 +1,22 @@
+Here is the version of the PST Script, which does the following.
+
+
+1.  Open each pst file specified in the PST listing input file.
+2.  Displays a HTML User Interface upon execution.  
+3.  Allows you to customize input file name/location, summary output file name/location, details output information, and details output file name/location.
+4.  For each pst file, count the total number of items within the pst.
+5.  For each pst file, calculate the subtotal of each message class of items within the pst.
+6.  Regarding the details output information, you can output all PST items, just Stubbed items, just Non-Stubbed Items, and No details.
+7.  Depending on the Details Option selected, the details will be written to the details output file selected.
+
+Here is how you use it.
+
+1.  Copy the scipt to a directory of a computer with Outlook 2000 or above installed.  The Outlook must be configured to use a profile that can open pst files.
+2.  Execute PSTItemizer.vbs.   
+3.  Create a text file of all the psts you want to process, and specify that file as your PST input file. You can use UNC or local name, provided the names are local to the server you are executing this script from.  
+4.  Specify details level and output files.
+5.  Warning, this script will close any open PSTs in your profile so it will not count them by mistake.
+6.  While it is executing, you will see a file called summary file created.  That file will document the progress of the itemization.
+7.  When execution is complete, a popup will come up informing you that execution is complete, and remind you of the locations of the output files.
+8.  Analyze the output files.  
+9.  You may see errors opening up PSTs in output files.  Check to make sure the PST is not read only, and not password protected.

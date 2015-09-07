@@ -1,0 +1,210 @@
+Option Explicit
+Dim objExplorer, objDocument
+Const ForReading = 1
+Const ForWriting = 2
+Const olFolderInbox = 6
+
+Dim objDictionary, KeyList, CntList
+Dim FileDetails, FileSummary, FilePSTList
+Dim Fso, FileIn, FileSum, PstFileName
+Dim olApp, olNameSPace, rootStoreID, PSTName, OpenedPST, PSTCount
+Dim i, Temp, ErrNum, ErrDesc, ErrCnt
+
+Set objExplorer = WScript.CreateObject ("InternetExplorer.Application")
+	objExplorer.Navigate "about:blank"
+	objExplorer.ToolBar = 0
+	objExplorer.StatusBar = 0
+	objExplorer.Width = 600
+	objExplorer.Height = 200
+	objExplorer.Left = 0
+	objExplorer.Top = 0
+	objExplorer.Visible = 1
+Set objDocument = objExplorer.Document
+
+	objDocument.Open
+	objDocument.Writeln "<html><title>PST Itemizer</title><body><table width=100%><tr><td>PST File List</td><td><input type=textbox name=PSTLIST size=60 value=PSTFileList.txt /></td></tr><tr><td>PST Summary File</td><td><input type=textbox name=SUMMARY size=60 value=PSTSummaryFile.txt /></td></tr><tr><td>PST Details</td><td>Non Stubbed Items Only</td></tr></table><br/><center><input type=checkbox name=CHK />Submit</center></body>"
+
+Do While (NotDone)
+	Wscript.Sleep 250
+Loop 
+
+	FilePSTList = objExplorer.Document.Body.All.PSTLIST.Value
+	FileSummary = objExplorer.Document.Body.All.SUMMARY.Value
+	
+	objExplorer.Quit
+Set ObjDocument = Nothing
+Set ObjExplorer = Nothing
+Set olApp = CreateObject("Outlook.Application")
+Set olNameSpace = olApp.GetNameSpace("MAPI")
+
+	'Get reference to mailbox.
+	rootStoreID = olNameSpace.GetDefaultFolder(olFolderInbox).parent.StoreID
+	'Closing any opened .pst file to avoid conflict
+	For i = olNameSpace.Folders.count To 1 Step -1
+		Temp = olNameSpace.Folders(i).StoreID
+		If Left(Temp,75) <> Left(rootStoreID,75) Then
+			'At least the first 75 digits of the rootStoreID are the same for items that aren't Personal Folders.
+			'Since they're not equal, this must be a Personal Folder. Close it.
+			olNameSpace.RemoveStore olNameSpace.Folders(i)
+		End If
+	Next
+
+Set Fso = CreateObject("Scripting.FileSystemObject")
+Set FileIn = Fso.OpenTextFile(FilePSTList, ForReading, True)
+Set FileSum = Fso.OpenTextFile(FileSummary, ForWriting, True)	
+	FileSum.Writeline "Itemization script commenced at " & Now()
+	FileSum.Writeline ""
+
+Do While FileIn.AtEndOfStream <> True
+	PstFileName = FileIn.Readline
+	If PstFileName <> "" Then
+		If Fso.FileExists(PstFileName) Then
+			On Error Resume Next	
+			olNameSpace.AddStore PstFileName
+			ErrNum = Err.Number  
+			ErrDesc = Err.Description
+			Err.Clear
+			On Error Goto 0
+				If ErrNum = 0 Then
+					FileSum.WriteLine "PST: " & PstFileName & vbCrLf & "Opened: " & Now()
+
+					For i = olNameSpace.Folders.count To 1 Step -1
+						Temp = olNameSpace.Folders(i).StoreID
+						If Left(Temp,75) <> Left(rootStoreID,75) Then
+							Set OpenedPST = olNameSpace.Folders(i)
+						End If
+					Next
+			
+					'Get the name of the PST.
+					PSTName = OpenedPST.Name
+					PSTCount = 0
+					Set objDictionary = CreateObject("Scripting.Dictionary")
+					
+					'Recurse folders!
+					RecurseFolder OpenedPST, ""
+					ErrCnt=0
+					FileSum.writeline "Total Messages " & vbTab & CStr(pstcount)
+
+					'Print dictionary
+					KeyList = objDictionary.Keys   ' Get the keys.
+					CntList = objDictionary.Items   
+			
+					For i = 0 To objDictionary.Count -1 ' Iterate the array.
+						If Right(UCase(KeyList(i)),4)<>".EAS" AND ErrCnt=0 Then
+							ErrCnt=1
+							FileSum.writeline KeyList(i) & vbTab  & CntList(i)
+							FileSum.writeline "### ERROR - THIS PST HAS MESSAGES THAT WERE NOT ARCHIVED ###"
+						Else
+							FileSum.WriteLine KeyList(i) & vbTab & CntList(i)
+						End If
+					Next
+					
+					olNameSpace.RemoveStore OpenedPST
+					
+					Set OpenedPST = Nothing
+					Set objDictionary = Nothing
+					
+					FileSum.WriteLine "Closed: " & Now()
+					FileSum.Writeline ""
+					WScript.Sleep  500
+				Else
+					FileSum.Writeline "PST File (" & PstFileName & ") could not be opened!"
+					FileSum.Writeline "Error # " & CStr(ErrNum)
+					FileSum.Writeline ErrDesc
+					FileSum.Writeline ""
+				End If
+			'olNameSPace.RemoveStore PstFileName
+		Else	
+			FileSum.Writeline "PST File (" & PstFileName & ") could not be found!"
+			FileSum.Writeline ""
+		End If		
+	End If
+'While FileIn.AtEndOfStream <> True
+Loop 
+
+Set olNameSpace = Nothing
+Set olApp = Nothing		
+	FileSum.Writeline "Itemization script completed at " & Now()
+	FileSum.Writeline ""
+	FileIn.Close
+	FileSum.Close
+Set FileSum = Nothing
+Set Fso = Nothing	
+
+WScript.Echo "PST Itemizer Completed.  Check " & FileSummary & " for summary info."
+
+Sub RecurseFolder(CurrentFolder,ParentFolder)
+	Dim SubFolder
+	If CurrentFolder.Folders.Count > 0 Then 
+		'This Folder has Subfolders. Deal with them first.
+		For Each SubFolder In CurrentFolder.Folders 		
+			Call RecurseFolder(SubFolder,ParentFolder & "\" & CurrentFolder.Name)			
+		Next				
+	End If
+	'Now Process Files
+	ProcessFiles CurrentFolder, ParentFolder & "\" & CurrentFolder.Name
+End Sub
+
+Sub ProcessFiles(CurrentFolder,FolderName)
+	Dim Item , i, ErrNum, ErrDesc, MClass
+	For i = 1 To CurrentFolder.Items.Count
+		PSTCount = PSTCount + 1
+		On Error Resume Next
+		Set Item = CurrentFolder.Items(i)
+		ErrNum = Err.Number  
+		ErrDesc = Err.Description
+		Err.Clear
+		On Error Goto 0
+		If ErrNum = 0 Then				
+			MClass = Item.MessageClass
+			AddMsgClass MClass
+		Else
+			FileSum.Writeline "PST File (" & PstFileName & ") , folder (" & FolderName & "), item #" & CStr(i) & " could not be referenced."
+			FileSum.Writeline "Error # " & CStr(ErrNum)
+			FileSum.Writeline ErrDesc
+			FileSum.Writeline ""
+		End If
+	Next
+	Set Item = Nothing
+End Sub
+
+Function Process(textstring)
+	Dim a
+	a = Replace (textstring,vbcrlf," ")
+	a = Replace (a,vbcr," ")
+	a = Replace (a,vblf," ")
+	a = Replace (a,vbtab," ")
+	Process = Mid(a,1,255)
+End Function
+
+Sub AddMsgClass(MsgClass)
+	If objDictionary.Exists(MsgClass) Then
+		objDictionary.Item(MsgClass) = objDictionary.Item(MsgClass) + 1
+	Else
+		objDictionary.Add MsgClass,1
+	End If
+End sub
+
+Function NotDone
+	Dim x,ErrNum
+	NotDone = true
+	On Error Resume Next
+	x = objExplorer.Document.Body.All.PSTLIST.Value
+	ErrNum = err.number
+	Err.Clear
+	On Error Goto 0
+
+	If ErrNum <> 0 Then
+		WScript.Quit
+	End If
+	
+	If objExplorer.Document.Body.All.CHK.checked Then
+		NotDone=false
+	Else
+		NotDone = true
+	End If
+End Function
+
+Sub IE_onQuit()
+	Wscript.Quit
+End Sub
