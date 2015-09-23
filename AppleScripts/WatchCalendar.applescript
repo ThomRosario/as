@@ -1,50 +1,63 @@
+(* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+This script copies calendar events from one calendar to another.  
+It grabs any event between the specified min and max dates, and all recurring
+events since it's just easier that way.  In the future, I may spend the time 
+to learn how Calendar.app handles it's recurrences & refine this to abide by 
+the min & max dates the same way normal events do.
+
+Thom Rosario
+9.20.2015
+v 1.0 -- Initial functionality.
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *)
+logMsg("starting")
+property iCloudCal : "APLExch"
+property exchCal : "Calendar"
+
+-- Get the current date & set the earliest and latest dates we want to work on
+set now to current date
+set maxDate to now + (7 * days)
+set minDate to now - (7 * days)
+
 tell application "Calendar"
 	activate
-	-- delete everything from the destination calendar
-	display dialog "Deleting old calendar data."
-	repeat with anEvent in (get events of calendar "APLExch")
-		delete anEvent
+	-- delete entries in specified time frame
+	repeat with anEvent in (get events of calendar iCloudCal)
+		-- check to see if it's in the date range
+		set eventStart to (start date of anEvent)
+		set inRange to ((eventStart > minDate) and (eventStart < maxDate))
+		
+		-- now check for recurring appt
+		set recurText to (recurrence of anEvent)
+		set recurrent to (recurText � missing value)
+		
+		-- if this is one of the appts, delete it
+		if inRange or recurrent then
+			set sumString to (summary of anEvent)
+			log "Deleting from destination:  " & sumString
+			delete anEvent
+		end if
 	end repeat
 	
-	-- copy all events from the source calendar to the destination
-	display dialog "Starting calendar copy."
-	repeat with anEvent in (get events of calendar "Calendar")
-		duplicate anEvent to the end of events of calendar "APLExch"
+	-- copy specific events from the source calendar to the destination
+	repeat with anEvent in (get events of calendar exchCal)
+		set eventStart to (start date of anEvent)
+		set recurText to (recurrence of anEvent)
+		if ((eventStart > minDate) and (eventStart < maxDate)) or �
+			(recurText � missing value) then
+			set sumString to (summary of anEvent)
+			log "Adding to destination:  " & sumString
+			duplicate anEvent to the end of events of calendar iCloudCal
+		end if
 	end repeat
 end tell
-display dialog "Calendar sync complete."
+logMsg("completed")
 
-(*
-tell application "System Events"
-	set isRunning to (count of (every process whose bundle identifier is "com.Growl.GrowlHelperApp")) > 0
-end tell
+on apptOfInterest()
+end apptOfInterest
 
-if isRunning then
-	tell application id "com.Growl.GrowlHelperApp"
-		-- Make a list of all the notification types 
-		-- that this script will ever send:
-		set the allNotificationsList to ¬
-			{"Calendar Sync"}
-		
-		-- Make a list of the notifications 
-		-- that will be enabled by default.      
-		-- Those not enabled by default can be enabled later 
-		-- in the 'Applications' tab of the growl prefpane.
-		set the enabledNotificationsList to ¬
-			{"Calendar Sync"}
-		
-		-- Register our script with growl.
-		-- You can optionally (as here) set a default icon 
-		-- for this script's notifications.
-		register as application ¬
-			"Calendar Sync Script" all notifications allNotificationsList ¬
-			default notifications enabledNotificationsList ¬
-			icon of application "Script Editor"
-		
-		-- Send a Notification...
-		notify with name ¬
-			"Calendar Sync" title ¬
-			"Calendar Sync notification" description ¬
-			"The calendar sync is complete." application name "Calendar Sync Script"
-	end tell
-end if *)
+on logMsg(scriptStatus)
+	set now to current date
+	set nowString to now as string
+	log nowString & ":  " & scriptStatus & " sync."
+	display dialog "Calendar sync script " & scriptStatus
+end logMsg
