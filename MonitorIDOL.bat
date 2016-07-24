@@ -2,7 +2,6 @@
 :: This script alerts the messaging team if any of the content engines are down
 :: 
 :: Thom Rosario
-:: thom_rosario@dell.com
 :: 1.17.2014; v1.1 -- added check to send only once/day
 :: 1.17.2014; v1.0
 :: ----------------------------------------------------------------------------

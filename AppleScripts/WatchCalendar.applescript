@@ -33,9 +33,10 @@ logMsg("starting")
 property debugScript : false
 property iCloudCal : "APLExch" -- the name of your iCloud calendar
 property exchCal : "Calendar" -- your Exchange calendar
-global powerSource -- used to save battery if you're not plugged in
+global powerSource, launchDelay -- used to save battery if you're not plugged in
 global eventStart, eventEnd -- used for holding calendar dates
 global maxDate, minDate, inRange, recurrent -- date calculations variables
+set launchDelay to 5
 
 (*************
 M A I N   C O D E
@@ -55,11 +56,8 @@ if powerSource is "AC" then
 		activate
 		if not debugScript then
 			-- wait for the app to load and then hide it
-			delay 17
-			tell application "System Events"
-				keystroke "h" using command down
-			end tell
-			delay 7 -- let the calendars finish loading
+			delay launchDelay
+			tell application "System Events" to tell process "Calendar" to set visible to false
 			
 			--Give the user a choice of calendars to pick as the source
 			--set listOfCalendars to name of calendars
@@ -140,31 +138,20 @@ if powerSource is "AC" then
 				on error errMsg
 					activate -- Calendar probably crashed; relaunch
 					if not debugScript then
-						delay 5 -- wait for the calendar to load
-						tell application "System Events"
-							keystroke "h" using command down
-						end tell
-						delay 5
+						tell application "System Events" to tell process "Calendar" to set visible to false
+						delay launchDelay
 					end if
 					log "Error:          " & sumString & "; " & errMsg
 				end try
 			end if
 		end repeat -- done copying events
+		-- Refresh calendars, then quit
+		reload calendars
+		delay launchDelay
 	end tell
-	
-	-- Refresh calendars, then quit
-	tell application "System Events"
-		keystroke "r" using command down
-	end tell
-	delay 10
-	quit
-	delay 3
 end if
+tell application "System Events" to tell process "Calendar" to set visible to true
 
-
-(*************
-H A N D L E R S       
-**************)
 if not debugScript then
 	do shell script "killall CalendarAgent"
 	if powerSource is "AC" then
@@ -173,6 +160,10 @@ if not debugScript then
 		logMsg("stopped to save battery.")
 	end if
 end if
+
+(*************
+H A N D L E R S       
+**************)
 
 -- Log and prompt subroutine
 on logMsg(scriptStatus)

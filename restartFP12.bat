@@ -3,7 +3,6 @@
 :: It's scheduled to run as a Windows Scheduled Task at 1am every morning.
 ::  
 :: Thom Rosario
-:: thom.rosario@jhuapl.edu
 :: 8.05.2015 -- v1.0
 :: ---------------------------------------------------------------------------------
 @echo off
