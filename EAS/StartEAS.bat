@@ -2,7 +2,7 @@
 :: This script starts EAS 
 :: 
 :: Thom Rosario
-:: thom_rosario@dell.com
+:: thom_rosario@email.com
 :: ---------------------------------------------------------------------------------
 echo - - = = S T A R T I N G   E A S = = - -
 set srvc=EASService

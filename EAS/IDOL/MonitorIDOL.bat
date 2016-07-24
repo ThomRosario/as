@@ -2,7 +2,7 @@
 :: This script alerts the messaging team if any of the content engines are down
 :: 
 :: Thom Rosario
-:: thom_rosario@dell.com
+:: thom_rosario@email.com
 :: 1.17.2014; v1.1 -- added check to send only once/day
 :: 1.17.2014; v1.0
 :: ----------------------------------------------------------------------------
@@ -13,10 +13,10 @@ set tempDate=%tempDate: =-%
 set today=%tempDate%.txt
 
 :: Set some variables for use in sending the report
-set to=-to thom_rosario@dell.com
-set from=-f IDOLStatus@medstar.net
+set to=-to thom_rosario@email.com
+set from=-f IDOLStatus@someplace.net
 set subj=-subject "IDOL Indexer Content Engine Down"
-set smtp=-server smtp.medstar.net
+set smtp=-server smtp.someplace.net
 set blat="D:\Program Files\blat\blat.exe"
 set statusFile="D:\Program Files\Monitoring\IDOL\status.txt"
 set serviceDown=0

@@ -4,7 +4,7 @@
 :: http://technet.microsoft.com/en-us/sysinternals/bb896683.aspx
 :: 
 :: Thom Rosario
-:: thom_rosario@dell.com
+:: thom_rosario@email.com
 :: ---------------------------------------------------------------------------------
 @echo off
 SETLOCAL ENABLEDELAYEDEXPANSION

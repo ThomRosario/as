@@ -3,7 +3,7 @@
 :: so that the restart of EAS comes up clean
 :: 
 :: Thom Rosario
-:: thom_rosario@dell.com
+:: thom_rosario@email.com
 :: 8.07.2013 -- v1.0
 :: ---------------------------------------------------------------------------------
 

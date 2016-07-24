@@ -3,7 +3,7 @@
 :: all instances of that process on the target server
 :: 
 :: Thom Rosario
-:: thom_rosario@dell.com
+:: thom_rosario@email.com
 :: ----------------------------------------------------------------------------
 
 @echo off

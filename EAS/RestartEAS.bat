@@ -4,7 +4,7 @@
 :: http://technet.microsoft.com/en-us/sysinternals/bb896683.aspx
 :: 
 :: Thom Rosario
-:: thom_rosario@dell.com
+:: thom_rosario@email.com
 :: 8.07.2013 -- added KillNotes.bat to get a clean restart on Domino Journaling
 :: 7.31.2013 -- created killprocess.bat and killservice.bat subroutines for cleaner,
 ::              more maintainable code

@@ -4,7 +4,7 @@
 :: greater than one day's worth of messages (held in the depth variable)
 :: 
 :: Thom Rosario
-:: thom_rosario@dell.com
+:: thom_rosario@email.com
 :: 1.17.2014; v1.1 -- added check to send only once per day
 :: 1.17.2014; v1.0
 :: ----------------------------------------------------------------------------
@@ -16,10 +16,10 @@ set today=%tempDate%.txt
 set maxDepth=500000
 
 :: Set some variables for use in sending the report
-set to=-to messagingteam@medstar.net
-set from=-f IndexStatus@medstar.net
+set to=-to messagingteam@someplace.net
+set from=-f IndexStatus@someplace.net
 set subj=-subject "EAS Index Queue Depth Greater than 1 Day"
-set smtp=-server smtp.medstar.net
+set smtp=-server smtp.someplace.net
 set body=EmailBody.txt
 set blat="D:\Program Files\blat\blat.exe"
 

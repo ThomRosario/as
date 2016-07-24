@@ -2,7 +2,7 @@
 :: This script restarts the EAS indexers
 :: 
 :: Thom Rosario
-:: thom_rosario@dell.com
+:: thom_rosario@email.com
 :: 9.05.2013 -- v1.0
 :: ---------------------------------------------------------------------------------
 @echo off

@@ -4,7 +4,7 @@
 :: http://technet.microsoft.com/en-us/sysinternals/bb896683.aspx
 :: 
 :: Thom Rosario
-:: thom_rosario@dell.com
+:: thom_rosario@email.com
 :: --------------------------------------------------------------
 echo - - = = S T A R T I N G   I N D E X E R = = - -
 set srvc=EASIDOLIndexerService

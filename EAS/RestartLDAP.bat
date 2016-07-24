@@ -2,7 +2,7 @@
 :: This script will restart LDAP on MSH00296.
 :: 
 :: Thom Rosario
-:: thom_rosario@dell.com
+:: thom_rosario@email.com
 :: 4.21.2014 -- v1.0
 :: ---------------------------------------------------------------------------------
 

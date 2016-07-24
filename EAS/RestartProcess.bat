@@ -3,7 +3,7 @@
 :: instances of that process on the target server
 :: 
 :: Thom Rosario
-:: thom_rosario@dell.com
+:: thom_rosario@email.com
 :: 7.31.2013 -- v1.0
 :: ---------------------------------------------------------------------------------
 

@@ -4,7 +4,7 @@
 :: http://technet.microsoft.com/en-us/sysinternals/bb896683.aspx
 :: 
 :: Thom Rosario
-:: thom_rosario@dell.com
+:: thom_rosario@email.com
 :: 8.07.2013 -- added cache cleanup
 :: 7.31.2013 -- added two subroutines for easier maintainability
 :: 7.30.2013 -- v1.0
