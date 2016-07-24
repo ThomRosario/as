@@ -4,7 +4,6 @@
 :: and makes note of which engine isn't running.
 :: 
 :: Thom Rosario
-:: thom_rosario@dell.com
 :: 1.17.2014 -- v1.0
 :: ----------------------------------------------------------------------------
 
