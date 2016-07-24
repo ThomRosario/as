@@ -63,7 +63,6 @@ def modeAlarmHandler(evt) {
 	log.debug "Mode changed to ${evt.value}."
     if (evt.value in alarmMode) {
         log.debug "Moving to position $newPosition"
-        //camera?.preset3()
 		switch (newPosition) {
 		    case "1":
 		        camera?.preset1()
@@ -80,7 +79,6 @@ def modeAlarmHandler(evt) {
     }
     else {
         log.debug "Returning to position $origPosition"
-        //camera?.preset1()
 		switch (origPosition) {
 		    case "1":
 		        camera?.preset1()
