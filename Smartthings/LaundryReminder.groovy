@@ -39,13 +39,12 @@ preferences {
 	section("What time do you want to be notified?") {
 		input("notifyTime", "time", title: "Enter a time to be notified.", required: true)
 	}
-	section("What number do you want to be notified at?") {
-		input("notifyNumber", "text", title: "Enter a mobile number.", required: false)
+	section("Who do you want to notify?") {
+		input("recipients", "contact", title: "Send notifications to") {
+            input "phone", "phone", title: "Send with text message (optional)",
+                description: "Phone Number", required: false
+			}
 	}
-}
-
-def initialized() {
-    runOnce(notifyTime, notificationHandler)
 }
 
 def installed() {
@@ -61,6 +60,7 @@ def updated() {
 
 def subscribeToEvents() {
 	subscribe(washerContact, "contact", washerHandler)
+	schedule(notifyTime, notificationHandler)
 }
 
 def washerHandler(evt) {
@@ -91,4 +91,13 @@ def notificationHandler(evt) {
 	2.  Notify if we did.
 	3.  Clear the flags for cycle times
 	*/
+	if (location.contactBookEnabled && recipients) {
+		log.debug "Contact Book enabled!"
+	    sendNotificationToContacts("Don't forget to check the washer.", recipients)
+	} 
+    else if (phone) { 
+    	// check that the user did select a phone number
+		log.debug "Contact Book not enabled."
+	    sendSms(phone, "Don't forget to check the washer.")
+	}
 }
