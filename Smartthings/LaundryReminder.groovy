@@ -33,9 +33,9 @@ preferences {
     section("Which vibration sensor?") {
       input("washerContact", "capability.contactSensor", title: "Pick the sensor", required: true, multiple: false)
     }
-/*	section("How long is your typical wash cycle?") {
-		input ("washTime", "text", title:"How many minutes does your laundry take?", required: true, defaultValue: "15")
-	} */
+	section("How long is your typical wash cycle?") {
+		input ("normalWashLength", "text", title:"How many minutes does your laundry take?", required: true, defaultValue: "15")
+	}
 	section("What time do you want to be notified?") {
 		input("notifyTime", "time", title: "Enter a time to be notified.", required: true)
 	}
@@ -61,43 +61,50 @@ def updated() {
 def initialize() {
 	subscribe(washerContact, "contact", washerHandler)
 	schedule(notifyTime, notificationHandler)
+	def cycleMinutes = normalWashLength * minutes
+	log.debug "Set washer cycle time to $cycleMinutes minutes."
 }
 
 def washerHandler(evt) {
     if (evt.value == "open") {
       // contact was opened, must be doing laundry.  Need to time it.
       log.debug "Contact is ${evt.value}"
-	  /*
-	  1.  Get the current time
-	  2.  Save the current time to the settings
-	  */
+	  state.startDate = now()
+	  log.debug "state.startDate = ${state.startDate}"
   }
   else {
       // contact was closed, make note of the time and tell the app to run later and check how long we ran
       log.debug "Contact is ${evt.value}"
-	  /*
-	  1.  Save the current time and date to settings
-	  2.  Check how long the cycle was
-	  3.  Set a flag for whether or not we ran a cycle today.
-	  */
-  }
+	  state.stopDate = now()
+	  log.debug "state.stopDate = ${state.stopDate}"
+	  def washLength = state.stopDate - state.startDate
+	  if (washLength ≥ normalWashLength) {
+		  state.washDay = true
+	  } 
+	  else {		  
+		  // the movement wasn't long enough to be considered a wash day
+		  log.debug "Movement stopped, but was shorter than a wash cycle.  washLength = $washLength and normalWashLength = $normalWashLength"
+	  }		  
+   }
 }
 
 def notificationHandler(evt) {
 	// this is where I'll decide how to handle what happens at the user's specified time
 	log.debug "We're inside the notification handler."
-	/*
-	1.  Check to see if we ran a cycle today.
-	2.  Notify if we did.
-	3.  Clear the flags for cycle times
-	*/
-	if (location.contactBookEnabled && recipients) {
-		log.debug "Contact Book enabled!"
-	    sendNotificationToContacts("Don't forget to check the washer.", recipients)
+	if (state.washDay) then {
+		if (location.contactBookEnabled && recipients) {
+			log.debug "Contact Book enabled!"
+		    sendNotificationToContacts("Don't forget to check the washer.", recipients)
+		} 
+	    else if (phone) { 
+	    	// check that the user did select a phone number
+			log.debug "Contact Book not enabled."
+		    sendSms(phone, "Don't forget to check the washer.")
+		}
+		state.washDay = false // resetting the flag for tomorrow
 	} 
-    else if (phone) { 
-    	// check that the user did select a phone number
-		log.debug "Contact Book not enabled."
-	    sendSms(phone, "Don't forget to check the washer.")
+	else {
+		// didn't do any wash today; nothing todo today.
+		log.debug "Didn't do any wash today.  state.washDay = $state.WashDay"
 	}
 }
