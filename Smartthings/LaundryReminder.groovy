@@ -49,16 +49,16 @@ preferences {
 
 def installed() {
 	log.debug "Installed with settings: ${settings}"
-	subscribeToEvents()
+	initialize()
 }
 
 def updated() {
 	log.debug "Updated with settings: ${settings}"
 	unsubscribe()
-	subscribeToEvents()
+	initialize()
 }
 
-def subscribeToEvents() {
+def initialize() {
 	subscribe(washerContact, "contact", washerHandler)
 	schedule(notifyTime, notificationHandler)
 }
