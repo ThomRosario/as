@@ -73,6 +73,9 @@ def modeAlarmHandler(evt) {
 		    case "3":
 		        camera?.preset3()
 		        break
+		    case "4":
+		        camera?.preset4()
+		        break
 		    default:
 		        camera?.preset3()
 		}		
@@ -88,6 +91,9 @@ def modeAlarmHandler(evt) {
 		        break
 		    case "3":
 		        camera?.preset3()
+		        break
+		    case "4":
+		        camera?.preset4()
 		        break
 		    default:
 		        camera?.preset1()

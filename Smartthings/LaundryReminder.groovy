@@ -20,7 +20,7 @@
  */
 
 definition(
-    name: "Evening Laundry Reminder",
+    name: "Laundry Reminder",
     namespace: "Thom Rosario",
     author: "Thom Rosario",
     category: "Safety & Security",
