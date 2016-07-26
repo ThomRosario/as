@@ -37,10 +37,10 @@ preferences {
 		input ("camera", "capability.imageCapture", multiple: true, title:"Which camera?")
 	}
 	section("To this preset...") {
-		input ("newPosition", "text", title:"Which preset position?", required: true, defaultValue: "3")
+		input ("newPosition", "number", title:"Which preset position?", required: true, defaultValue: "3")
 	}
 	section("... and return to this position...") {
-		input ("origPosition", "text", title: "Which preset position?", required: false, defaultValue: "1")
+		input ("origPosition", "number", title: "Which preset position?", required: false, defaultValue: "1")
 	}
 }
 
