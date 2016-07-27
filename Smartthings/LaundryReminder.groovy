@@ -71,6 +71,7 @@ def washerHandler(evt) {
       log.debug "Contact is ${evt.value}"
 	  state.startDate = now()
 	  log.debug "state.startDate = ${state.startDate}"
+	  state.washDay = true // going to shortcut the sensor so that every opening equates to a washday; our washer doesn't vibrate enough to stay open for long
   }
   else {
       // contact was closed, make note of the time and tell the app to run later and check how long we ran
