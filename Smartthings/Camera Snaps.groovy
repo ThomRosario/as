@@ -61,57 +61,54 @@ def updated() {
 }
 
 def initialize() {
-	subscribe(motionSensors, "motion.active", motionHandler)
-	subscribe(contactSensors, "contact.open", motionHandler)
+	subscribe(motionSensors, "motion.active", scheduleHandler)
+	subscribe(contactSensors, "contact.open", scheduleHandler)
+	state.snapDelay = 1 // give the camera time to snap the photo before moving it again
 }
 
-def motionHandler (evt) {
-	log.debug "motionHandler called: $evt"
-	def snapDelay = 2 // give the camera time to snap the photo
-	//def command = ""
-	//state.presetNum = 1
-	//log.debug "stored state variable presetNum = ${state.presetNum}"
-	//camera?.take() // snap a quick photo wherever we are
-	// log.debug "motionHandler:  snapped original position photo"
+def scheduleHandler (evt) {
+	log.debug "scheduleHandler called: $evt"
+	def moveDelay = 0 // init the variable
+	state.presetNum = 0 // init the variable every time we see motion
+
 	// check the presetPause before using it; this is the delay we wait between snapping photos
 	if (presetPause < 2) {
-		log.debug "motionHandler:  presetPause was < 2; setting to ${presetPause}"
+		log.debug "scheduleHandler:  presetPause was < 2; setting to ${presetPause}"
 		presetPause = 2
 	}
+	log.debug "scheduleHandler:  state.presetNum = ${state.presetNum}; presetPause = ${presetPause}; moveDelay = ${moveDelay}"	
 	
 	// set the snap and move routine
-	def moveDelay = 1
-	state.presetNum = 1 // start at the start
-	log.debug "motionHandler:  initialized moveDelay to ${moveDelay}"
 	for (int i = 1; i < numPresets + 1; i++) {
-		//state.presetNum = i // save this to tell the camera which preset to move to
 		moveDelay = i * presetPause // give the camera time to move
-		log.debug "motionHandler:  moveDelay = ${moveDelay} & state.presetNum = ${state.presetNum}"
-		
-		// snap & move
+		log.debug "scheduleHandler:  moveDelay = ${moveDelay} & increment = ${i}"
 		runIn(moveDelay, snapHandler, [overwrite: false])
-		runIn(moveDelay + snapDelay, presetHandler, [overwrite: false])
 	}
-	
-	// now move the camera back to where it was
-	/*
-	state.presetNum = origPosition
-	moveDelay = (numPresets + 1) * presetPause
-	log.debug "motionHandler:  moving back to preset ${state.presetNum} in ${moveDelay} seconds."
-	runIn(moveDelay, presetHandler, [overwrite: false])
-	*/
 }
 
 def snapHandler() {
 	// takes the picture
-	log.debug "snapHandler:  snapping a photo."
+	if (state.presetNum == 0) {
+		log.debug "snapHandler:  snapping original position. state.presetNum = ${state.presetNum}"
+	}
+	else {
+		log.debug "snapHandler:  snapping a photo. state.presetNum = ${state.presetNum}"
+	}
 	camera?.take()
 	state.presetNum = state.presetNum + 1
+	moveHandler()
+	if (state.presetNum == numPresets) {
+		// now handle setting the user requested finishing spot
+		state.presetNum = origPosition
+		log.debug "snapHandler:  on last loop; restoring position; state.presetNum = ${state.presetNum}"
+		// now move the camera back to where it was
+		moveHandler()
+	}
 }
 
-def presetHandler() {
+def moveHandler() {
 	// moves the camera
-	log.debug "presetHandler:  moving the camera.  state.presetNum = ${state.presetNum}"
+	log.debug "moveHandler:  moving the camera.  state.presetNum = ${state.presetNum}"
 	switch (state.presetNum) {
 	    case "1":
 	        camera?.preset1()
@@ -126,37 +123,7 @@ def presetHandler() {
 	        camera?.preset4()
 	        break
 	    case "5":
-	        camera?.preset6()
-	        break
-	    case "6":
-	        camera?.preset6()
-	        break
-	    default:
-	        camera?.preset1()
-	}	
-}
-
-def pictureHandler() {
-	// snaps the pictures
-	log.debug "pictureHandler:retrieving state variable presetNum = ${state.presetNum}"
-	camera?.take()
-	state.presetNum = state.presetNum + 1
-	log.debug "pictureHandler:  tried to increment state.presetNum = ${state.presetNum}"
-	switch (state.presetNum) {
-	    case "1":
-	        camera?.preset1()
-	        break
-	    case "2":
-	        camera?.preset2()
-	        break
-	    case "3":
-	        camera?.preset3()
-	        break
-	    case "4":
-	        camera?.preset4()
-	        break
-	    case "5":
-	        camera?.preset6()
+	        camera?.preset5()
 	        break
 	    case "6":
 	        camera?.preset6()
