@@ -8,6 +8,7 @@
  *
  *  I wanted a non-creepy security camera that would avert it's eyes while I was home.
  *  https://youtu.be/jHsbwY4EPyA?t=25
+ *  Add a mode to 
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the License at:
