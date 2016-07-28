@@ -102,7 +102,8 @@ def snapHandler() {
 		state.presetNum = origPosition
 		log.debug "snapHandler:  on last loop; restoring position; state.presetNum = ${state.presetNum}"
 		// now move the camera back to where it was
-		moveHandler()
+		runIn(presetPause, moveHandler, [overwrite: false])
+		//moveHandler()
 	}
 }
 
