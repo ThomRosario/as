@@ -8,7 +8,7 @@
  *
  *  Take snapshots each camera preset position whenever there's something going on.
  *
- *  TODO:  have scheduleHander write a list of that tells what position and snap and move to and then 
+ *  TODO:  have scheduleHander write a list that tells what position and snap and move to and then 
  *         have snapHandler read the list, and increment state variable showing which picture we took
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
@@ -47,7 +47,7 @@ preferences {
 	section("Wait how long between taking photos?") {
 		input ("movePeriod", "number", title: "How many seconds (no less than 5)?", required: false, defaultValue: "10")
 	}
-	section("How many presets do you have?") {
+	section("How many presets should we snap?") {
 		input ("numPresets", "number", title: "Usually 3", required: false, defaultValue: "3")
 	}
 }
