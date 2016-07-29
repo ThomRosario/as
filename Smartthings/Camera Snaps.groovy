@@ -8,6 +8,9 @@
  *
  *  Take snapshots each camera preset position whenever there's something going on.
  *
+ *  TODO:  have scheduleHander write a list of that tells what position and snap and move to and then 
+ *         have snapHandler read the list, and increment state variable showing which picture we took
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the License at:
  *
@@ -106,31 +109,6 @@ def snapHandler() {
 			state.presetNum = state.presetNum + 1
 	}		
 	runIn(state.shutterDelay, moveHandler, [overwrite: false])
-
-	/*
-	if (state.presetNum == 0) {
-		log.debug "snapHandler:  snapping original position. state.presetNum = ${state.presetNum}"
-		camera?.take()
-		state.presetNum = state.presetNum + 1
-		runIn(state.shutterDelay, moveHandler, [overwrite: false])
-	}
-	else {
-		log.debug "snapHandler:  snapping a photo. state.presetNum = ${state.presetNum}"
-		camera?.take()
-		state.presetNum = state.presetNum + 1
-		runIn(state.shutterDelay, moveHandler, [overwrite: false])
-	}
-	camera?.take()
-	state.presetNum = state.presetNum + 1
-	runIn(state.shutterDelay, moveHandler, [overwrite: false])
-	if (state.presetNum > numPresets) {
-		// now handle setting the user requested finishing spot		
-		state.presetNum = origPosition
-		log.debug "snapHandler:  on last loop; restoring position; state.presetNum = ${state.presetNum}"
-		// now move the camera back to where it was
-		runIn(movePeriod, moveHandler, [overwrite: false])
-	}
-	*/
 }
 
 def moveHandler() {
