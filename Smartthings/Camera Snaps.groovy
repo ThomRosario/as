@@ -42,7 +42,7 @@ preferences {
 		input ("origPosition", "number", title: "Which preset position?", required: false, defaultValue: "1")
 	}
 	section("Wait how long between taking photos?") {
-		input ("presetPause", "number", title: "How many seconds?", required: false, defaultValue: "10")
+		input ("movePeriod", "number", title: "How many seconds (no less than 5)?", required: false, defaultValue: "10")
 	}
 	section("How many presets do you have?") {
 		input ("numPresets", "number", title: "Usually 3", required: false, defaultValue: "3")
@@ -63,54 +63,83 @@ def updated() {
 def initialize() {
 	subscribe(motionSensors, "motion.active", scheduleHandler)
 	subscribe(contactSensors, "contact.open", scheduleHandler)
-	state.snapDelay = 1 // give the camera time to snap the photo before moving it again
+	state.shutterDelay = 2 // give the camera time to snap the photo before moving it again
 }
 
 def scheduleHandler (evt) {
-	log.debug "scheduleHandler called: $evt"
-	def moveDelay = 0 // init the variable
-	state.presetNum = 0 // init the variable every time we see motion
+	log.debug "scheduleHandler called: ${evt.value}"
+	// init these variables every time we see motion
+	def schedTime = 0 // number of seconds in the future to snap & move
+	state.presetNum = 0 // the preset number to move to; 0 means don't move
 
-	// check the presetPause before using it; this is the delay we wait between snapping photos
-	if (presetPause < 2) {
-		log.debug "scheduleHandler:  presetPause was < 2; setting to ${presetPause}"
-		presetPause = 2
+	// check the movePeriod user chose before using it; this is amount of time we give the camera to move positions
+	if (movePeriod < 5) {
+		movePeriod = 5
+		log.debug "scheduleHandler:  movePeriod was < ${movePeriod}; setting to ${movePeriod}"
 	}
-	log.debug "scheduleHandler:  state.presetNum = ${state.presetNum}; presetPause = ${presetPause}; moveDelay = ${moveDelay}"	
+	log.debug "scheduleHandler:  state.presetNum = ${state.presetNum}; movePeriod = ${movePeriod}"	
 	
 	// set the snap and move routine
-	for (int i = 1; i < numPresets + 1; i++) {
-		moveDelay = i * presetPause // give the camera time to move
-		log.debug "scheduleHandler:  moveDelay = ${moveDelay} & increment = ${i}"
-		runIn(moveDelay, snapHandler, [overwrite: false])
+	for (int i = 1; i < numPresets + 2; i++) {
+		schedTime = i * movePeriod // schedule moves to occur increasingly further future times
+		log.debug "scheduleHandler:  schedTime = ${schedTime} & increment = ${i}"
+		runIn(schedTime, snapHandler, [overwrite: false])
 	}
 }
 
 def snapHandler() {
-	// takes the picture
+	// take the picture
+	camera?.take()
+	
+	// choose what to set the preset to
+	switch (state.presetNum) {
+	    case "0":
+			log.debug "snapHandler:  snapping original position. state.presetNum = ${state.presetNum}"
+			state.presetNum = state.presetNum + 1
+	        break
+		case "${numPresets + 1}":
+			log.debug "snapHandler:  on last loop; restoring position; state.presetNum = ${state.presetNum}"
+			state.presetNum = origPosition
+			break
+	    default:
+			log.debug "snapHandler:  snapping a photo. state.presetNum = ${state.presetNum}"
+			state.presetNum = state.presetNum + 1
+	}		
+	runIn(state.shutterDelay, moveHandler, [overwrite: false])
+
+	/*
 	if (state.presetNum == 0) {
 		log.debug "snapHandler:  snapping original position. state.presetNum = ${state.presetNum}"
+		camera?.take()
+		state.presetNum = state.presetNum + 1
+		runIn(state.shutterDelay, moveHandler, [overwrite: false])
 	}
 	else {
 		log.debug "snapHandler:  snapping a photo. state.presetNum = ${state.presetNum}"
+		camera?.take()
+		state.presetNum = state.presetNum + 1
+		runIn(state.shutterDelay, moveHandler, [overwrite: false])
 	}
 	camera?.take()
 	state.presetNum = state.presetNum + 1
-	moveHandler()
-	if (state.presetNum == numPresets) {
-		// now handle setting the user requested finishing spot
+	runIn(state.shutterDelay, moveHandler, [overwrite: false])
+	if (state.presetNum > numPresets) {
+		// now handle setting the user requested finishing spot		
 		state.presetNum = origPosition
 		log.debug "snapHandler:  on last loop; restoring position; state.presetNum = ${state.presetNum}"
 		// now move the camera back to where it was
-		runIn(presetPause, moveHandler, [overwrite: false])
-		//moveHandler()
+		runIn(movePeriod, moveHandler, [overwrite: false])
 	}
+	*/
 }
 
 def moveHandler() {
 	// moves the camera
 	log.debug "moveHandler:  moving the camera.  state.presetNum = ${state.presetNum}"
 	switch (state.presetNum) {
+	    case "0":
+	        // don't move; stay here.
+	        break
 	    case "1":
 	        camera?.preset1()
 	        break
