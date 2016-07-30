@@ -67,6 +67,7 @@ def initialize() {
 	subscribe(motionSensors, "motion.active", scheduleHandler)
 	subscribe(contactSensors, "contact.open", scheduleHandler)
 	state.shutterDelay = 2 // give the camera time to snap the photo before moving it again
+	state.presetList = [settings.origPosition]
 }
 
 def scheduleHandler (evt) {
@@ -74,6 +75,7 @@ def scheduleHandler (evt) {
 	// init these variables every time we see motion
 	def schedTime = 0 // number of seconds in the future to snap & move
 	state.presetNum = 0 // the preset number to move to; 0 means don't move
+	log.debug "scheduleHandler: setting presetList[0] to origPosition -- ${state.presetList[0]}"
 
 	// check the movePeriod user chose before using it; this is amount of time we give the camera to move positions
 	if (movePeriod < 5) {
@@ -85,6 +87,7 @@ def scheduleHandler (evt) {
 	// set the snap and move routine
 	for (int i = 1; i < numPresets + 2; i++) {
 		schedTime = i * movePeriod // schedule moves to occur increasingly further future times
+		state.presetList << i
 		log.debug "scheduleHandler:  schedTime = ${schedTime} & increment = ${i}"
 		runIn(schedTime, snapHandler, [overwrite: false])
 	}
