@@ -32,23 +32,17 @@ definition(
 )
 
 preferences {
-	section("When there's motion here...") {
-		input("motionSensors", "capability.motionSensor", required: true, title: "Where?", multiple: true)
+	section("When this happens...") {
+		input("motionSensors", "capability.motionSensor", required: true, title: "... motion here", multiple: true)
+        input("contactSensors", "capability.contactSensor", title: "... or this sensor opens", required: false, multiple: true)
 	}
-    section("... or this contact sensor opens...") {
-      input("contactSensors", "capability.contactSensor", title: "Pick the sensor", required: false, multiple: true)
-    }
-    section("Snap images from this camera...") {
-		input("camera", "capability.imageCapture", required: true, title: "Which camera?", multiple: true)
+    section("Do this") {
+		input("camera", "capability.imageCapture", required: true, title: "Snap a photo on this camera...", multiple: true)
+		input ("returnPosition", "number", title: "... and return the camera to this preset position.", required: false, defaultValue: "1")
 	}
-	section("... and return to this position...") {
-		input ("origPosition", "number", title: "Which preset position?", required: false, defaultValue: "1")
-	}
-	section("Wait how long between taking photos?") {
-		input ("movePeriod", "number", title: "How many seconds (no less than 5)?", required: false, defaultValue: "10")
-	}
-	section("How many presets should we snap?") {
-		input ("numPresets", "number", title: "Usually 3", required: false, defaultValue: "3")
+	section("Snap mode specifics") {
+		input ("camMoveDelay", "number", title: "Wait how many seconds between taking photos (no less than 5)?", required: false, defaultValue: "10")
+		input ("numPresets", "number", title: "How many preset positions should we snap (typically 3)?", required: false, defaultValue: "3")
 	}
 }
 
@@ -67,26 +61,30 @@ def initialize() {
 	subscribe(motionSensors, "motion.active", scheduleHandler)
 	subscribe(contactSensors, "contact.open", scheduleHandler)
 	state.shutterDelay = 2 // give the camera time to snap the photo before moving it again
-	state.presetList = [settings.origPosition]
+	state.presetList = [settings.returnPosition]
+	log.debug("initialize:  presetList = ${state.presetList}")
 }
 
 def scheduleHandler (evt) {
 	log.debug "scheduleHandler called: ${evt.value}"
+	camera?.ledAuto()
+	state.presetIndex = 0
+	// camera?.alarmOff()
 	// init these variables every time we see motion
 	def schedTime = 0 // number of seconds in the future to snap & move
 	state.presetNum = 0 // the preset number to move to; 0 means don't move
-	log.debug "scheduleHandler: setting presetList[0] to origPosition -- ${state.presetList[0]}"
+	log.debug "scheduleHandler: setting presetList[0] to returnPosition -- ${state.presetList[0]}"
 
-	// check the movePeriod user chose before using it; this is amount of time we give the camera to move positions
-	if (movePeriod < 5) {
-		movePeriod = 5
-		log.debug "scheduleHandler:  movePeriod was < ${movePeriod}; setting to ${movePeriod}"
+	// check the camMoveDelay user chose before using it; this is amount of time we give the camera to move positions
+	if (settings.camMoveDelay < 5) {
+		settings.camMoveDelay = 5
+		log.debug "scheduleHandler:  camMoveDelay was < ${camMoveDelay}; setting to ${camMoveDelay}"
 	}
-	log.debug "scheduleHandler:  state.presetNum = ${state.presetNum}; movePeriod = ${movePeriod}"	
+	log.debug "scheduleHandler:  state.presetNum = ${state.presetNum}; camMoveDelay = ${camMoveDelay}"	
 	
 	// set the snap and move routine
 	for (int i = 1; i < numPresets + 2; i++) {
-		schedTime = i * movePeriod // schedule moves to occur increasingly further future times
+		schedTime = i * camMoveDelay // schedule moves to occur increasingly further future times
 		state.presetList << i
 		log.debug "scheduleHandler:  schedTime = ${schedTime} & increment = ${i}"
 		runIn(schedTime, snapHandler, [overwrite: false])
@@ -94,10 +92,7 @@ def scheduleHandler (evt) {
 }
 
 def snapHandler() {
-	// take the picture
 	camera?.take()
-	
-	// choose what to set the preset to
 	switch (state.presetNum) {
 	    case "0":
 			log.debug "snapHandler:  snapping original position. state.presetNum = ${state.presetNum}"
@@ -105,7 +100,7 @@ def snapHandler() {
 	        break
 		case "${numPresets + 1}":
 			log.debug "snapHandler:  on last loop; restoring position; state.presetNum = ${state.presetNum}"
-			state.presetNum = origPosition
+			state.presetNum = returnPosition
 			break
 	    default:
 			log.debug "snapHandler:  snapping a photo. state.presetNum = ${state.presetNum}"
@@ -141,5 +136,7 @@ def moveHandler() {
 	        break
 	    default:
 	        camera?.preset1()
-	}	
+	}
+	state.presetIndex = state.presetIndex + 1
+	log.debug "moveHandler:  state.presetIndex = ${state.presetIndex}"
 }
