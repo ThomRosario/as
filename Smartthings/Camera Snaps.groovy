@@ -10,6 +10,7 @@
  *
  *  TODO:  have scheduleHander write a list that tells what position and snap and move to and then 
  *         have snapHandler read the list, and increment state variable showing which picture we took
+ *         write a state variable of the starting position and move back there when done
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the License at:
