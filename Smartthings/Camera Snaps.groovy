@@ -24,12 +24,13 @@
 
 definition(
     name: "Camera Snaps All Presets",
-    namespace: "Thom Rosario",
+	parent: "burrow:Smart Burrow",
+    namespace: "burrow",
     author: "Thom Rosario",
     category: "Safety & Security",
     description: "Snap photos of Foscam preset positions whenever there's activity.",
-    iconUrl: "https://s3.amazonaws.com/smartapp-icons/Solution/camera.png",
-    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Solution/camera@2x.png"
+    iconUrl: "http://cdn.device-icons.smartthings.com/Entertainment/entertainment9-icn.png",
+    iconX2Url: "http://cdn.device-icons.smartthings.com/Entertainment/entertainment9-icn@2x.png"
 )
 
 preferences {
@@ -63,7 +64,7 @@ def initialize() {
 	subscribe(contactSensors, "contact.open", scheduleHandler)
 	state.shutterDelay = 2 // give the camera time to snap the photo before moving it again
 	state.presetList = [settings.returnPosition]
-	log.debug("initialize:  presetList = ${state.presetList}")
+	log.debug "initialize:  presetList = ${state.presetList}"
 }
 
 def scheduleHandler (evt) {

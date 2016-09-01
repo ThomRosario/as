@@ -1,5 +1,5 @@
-/**
- *  Non-Creepy Security Camera
+/*
+ *  Smart Burrow
  *  Version 1.0
  *  Copyright 2016 Thom Rosario
  *
@@ -15,57 +15,65 @@
  *  for the specific language governing permissions and limitations under the License.
  */
 
-definition(
-    name: "Burrow Mode Commander",
-    namespace: "Thom Rosario",
+ definition (
+    name: "Smart Burrow",
+    namespace: "burrow",
     author: "Thom Rosario",
     category: "Convenience",
-    description: "Finer-grained presence-sensor control than modes allow in support of a multi-generational family.",
-    iconUrl: "https://s3.amazonaws.com/smartapp-icons/Solution/camera.png",
-    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Solution/camera@2x.png"
+    description: "Finer-grained presence-sensor & control than modes allow in support of a multi-generational family.",
+	singleInstance: true,
+    iconUrl: "http://cdn.device-icons.smartthings.com/Home/home2-icn.png",
+    iconX2Url: "http://cdn.device-icons.smartthings.com/Home/home2-icn@2x.png"
 )
 
 preferences {
-	section("When this happens...") {
-		input ("stMode", "mode", multiple: true, title:"This mode activates")
-        input "presence", "capability.presenceSensor", title: "These people are present", required: false, multiple: true
+	page (name: "mainPage", title: "Child Apps", install: true, uninstall: true) {
+		section {
+	    	app (name: "camApps", appName: "Non-Creepy Security Camera", namespace: "burrow", title: "New Non-Creepy Camera", multiple: true)
+	    	app (name: "lightPresenceApps", appName: "Lights While Present", namespace: "burrow", title: "Lights While Present", multiple: true)
+	    	app (name: "cameraIRApps", appName: "Camera IR Modes", namespace: "burrow", title: "Camera IR Modes", multiple: true)
+			//app (name: "cameraSnapsApps", appName: "Camera Snaps All Presets", namespace: "burrow", title: "Camera Snaps", multiple: true)
+		}
+        section ("When this happens...") {
+            input ("stMode", "mode", multiple: true, title: "This mode activates")
+            input ("presence", "capability.presenceSensor", title: "These people are present", required: false, multiple: true)
+        }
+        section ("Notification Settings") {
+            input ("recipients", "contact", title: "Who should I notify?", required: false) {
+                input ("phone", "phone", title: "Send with text message (optional)", description: "Phone Number", required: false)
+            }
+	   }
 	}
-    section("Do these things...") {
-		input ("newPosition", "number", title:"Where should I move?", required: true, defaultValue: "3")
-		input ("origPosition", "number", title: "Where should I return to when I'm done?", required: true, defaultValue: "1")
-		input("recipients", "contact", title: "Who should I notify?") {
-            input "phone", "phone", title: "Send with text message (optional)",
-                description: "Phone Number", required: false
-			}
-	}
-    section("To these cameras"){
-		input ("camera", "capability.imageCapture", multiple: true, title:"Which camera?")
-    }
 }
 
-def installed() {
+def installed () {
 	log.debug "Installed with settings: ${settings}"
-	init()
+	init ()
 }
 
-def updated() {
+def updated () {
 	log.debug "Updated with settings: ${settings}"
-	unsubscribe()
-	init()
+	unsubscribe ()
+	init ()
 }
 
-def init() {
-    subscribe(location, "mode", moveHandler)
-	subscribe(presence, "presence", moveHandler)
+def init () {
+    subscribe (location, "mode", modeHandler)
+	subscribe (presence, "presence", presenceHandler)
+	state.nobodyHome = presence.find {it.currentPresence == "present"} == null
 }
 
-def notificationHandler(msg) {
-	// handle notifications
+def modeHandler (evt) {
+}
+
+def presenceHandler (evt) {
+}
+
+def notificationHandler (msg) {
 	if (location.contactBookEnabled && recipients) {
-	    sendNotificationToContacts(msg, recipients)
+	    sendNotificationToContacts (msg, recipients)
 	} 
     else if (phone) { 
-    	// check that the user did select a phone number
-	    sendSms(phone, msg)
+	    sendSms (phone, msg)
 	}
 }

@@ -21,26 +21,23 @@
 
 definition(
     name: "Laundry Reminder",
-    namespace: "Thom Rosario",
+	parent: "burrow:Smart Burrow",
+    namespace: "burrow",
     author: "Thom Rosario",
     category: "Safety & Security",
     description: "Give yourself a reminder to check the washer before bed.",
-    iconUrl: "https://s3.amazonaws.com/smartapp-icons/Solution/camera.png",
-    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Solution/camera@2x.png"
+    iconUrl: "http://cdn.device-icons.smartthings.com/Appliances/appliances8-icn.png",
+    iconX2Url: "http://cdn.device-icons.smartthings.com/Appliances/appliances8-icn@2x.png"
 )
 
 preferences {
-    section("Which vibration sensor?") {
-      input("washerContact", "capability.contactSensor", title: "Pick the sensor", required: true, multiple: false)
+    section ("Which vibration sensor?") {
+      input ("washerContact", "capability.contactSensor", title: "Pick the sensor", required: true, multiple: false)
+	  input ("normalWashLength", "text", title:"How many minutes does a typcical wash cycle laundry take?", required: true, defaultValue: "15")
     }
-	section("How long is your typical wash cycle?") {
-		input ("normalWashLength", "text", title:"How many minutes does your laundry take?", required: true, defaultValue: "15")
-	}
-	section("What time do you want to be notified?") {
-		input("notifyTime", "time", title: "Enter a time to be notified.", required: true)
-	}
-	section("Who do you want to notify?") {
-		input("recipients", "contact", title: "Send notifications to") {
+	section ("Who do you want to notify?") {
+		input ("notifyTime", "time", title: "Enter a time to be notified.", required: true)
+		input ("recipients", "contact", title: "Send notifications to") {
             input "phone", "phone", title: "Send with text message (optional)",
                 description: "Phone Number", required: false
 			}
@@ -79,7 +76,7 @@ def washerHandler(evt) {
 	  state.stopDate = now()
 	  log.debug "state.stopDate = ${state.stopDate}"
 	  def washLength = state.stopDate - state.startDate
-	  if (washLength ≥ normalWashLength) {
+	  if (washLength >= normalWashLength) {
 		  state.washDay = true
 	  } 
 	  else {		  
