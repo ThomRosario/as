@@ -1,3 +1,5 @@
+# Automating Existing Light Switches via SmartThings
+
 Monoprice Z-wave In-Wall On/Off Switch, part number 11989
 Also sold as the Vision In Wall Z-Wave Micro Switch, 1 relay
 
