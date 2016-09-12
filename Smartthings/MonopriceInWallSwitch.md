@@ -5,8 +5,8 @@ Wiring
 * White - goes to neutral.
 * Red - pigtailed with the load wire.
 
-![Switch][MonopriceInWallSwitch01.jpg]
-![Wiring][MonopriceInWallSwitch02.jpg]
+[Switch](MonopriceInWallSwitch01.jpg)
+[Wiring](MonopriceInWallSwitch02.jpg)
 
  
 Programming using the Program Switch
