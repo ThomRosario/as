@@ -37,6 +37,9 @@ preferences {
         section ("When this happens...") {
             input ("stMode", "mode", multiple: true, title: "This mode activates")
             input ("presence", "capability.presenceSensor", title: "These people are present", required: false, multiple: true)
+			input ("motionSensors", "capability.motionSensor", required: true, title: "... motion here", multiple: true)
+	        input ("contactSensors", "capability.contactSensor", title: "... or this sensor opens", required: false, multiple: true)
+			input ("resetDelay", "number", title: "How many seconds should we wait before resetting to normal operations?", required: false, defaultValue: "30")
         }
         section ("Notification Settings") {
             input ("recipients", "contact", title: "Who should I notify?", required: false) {
@@ -60,10 +63,23 @@ def updated () {
 def init () {
     subscribe (location, "mode", modeHandler)
 	subscribe (presence, "presence", presenceHandler)
+	subscribe (motionSensors, "motion.active", motionHandler)
+	subscribe (contactSensors, "contact.open", contactHandler)
 	state.nobodyHome = presence.find {it.currentPresence == "present"} == null
+	if (!resetDelay) {
+		resetDelay = "30"
+	}
 }
 
 def modeHandler (evt) {
+}
+
+def motionHandler (evt) {
+	runIn (resetDelay, cameraIRApps.irModeHandler)
+	runIn (resetDelay, camApps.nonCreepyHandler(evt))
+}
+
+def contactHandler (evt) {
 }
 
 def presenceHandler (evt) {

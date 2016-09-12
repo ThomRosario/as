@@ -1,4 +1,4 @@
-/**
+/*
  *  Laundry Reminder
  *  Version 1.0
  *  Copyright 2016 Thom Rosario
@@ -21,8 +21,8 @@
 
 definition(
     name: "Laundry Reminder",
-	parent: "burrow:Smart Burrow",
     namespace: "burrow",
+	//parent: "burrow:Smart Burrow",
     author: "Thom Rosario",
     category: "Safety & Security",
     description: "Give yourself a reminder to check the washer before bed.",
@@ -33,76 +33,60 @@ definition(
 preferences {
     section ("Which vibration sensor?") {
       input ("washerContact", "capability.contactSensor", title: "Pick the sensor", required: true, multiple: false)
-	  input ("normalWashLength", "text", title:"How many minutes does a typcical wash cycle laundry take?", required: true, defaultValue: "15")
+	  input ("normalWashLength", "number", title: "How many minutes does a typcical laundry wash cycle take?", required: true, defaultValue: "15")
     }
-	section ("Who do you want to notify?") {
-		input ("notifyTime", "time", title: "Enter a time to be notified.", required: true)
-		input ("recipients", "contact", title: "Send notifications to") {
-            input "phone", "phone", title: "Send with text message (optional)",
-                description: "Phone Number", required: false
-			}
-	}
+    section ("Notification Settings") {
+		input ("phone", "phone", title: "Send with text message (optional)", description: "Phone Number", required: false)
+        input "notifyTime", "time", title: "Enter a time to be notified."
+		input ("recipients", "contact", title: "Who should I notify?", required: false)
+        /*input ("recipients", "contact", title: "Who should I notify?", required: false) {
+            input ("phone", "phone", title: "Send with text message (optional)", description: "Phone Number", required: false)
+        }*/
+    }
 }
 
-def installed() {
+def installed () {
 	log.debug "Installed with settings: ${settings}"
-	initialize()
+	initialize ()
 }
 
-def updated() {
+def updated () {
 	log.debug "Updated with settings: ${settings}"
-	unsubscribe()
-	initialize()
+	unsubscribe ()
+	initialize ()
 }
 
-def initialize() {
-	subscribe(washerContact, "contact", washerHandler)
-	schedule(notifyTime, notificationHandler)
-	def cycleMinutes = normalWashLength * minutes
-	log.debug "Set washer cycle time to $cycleMinutes minutes."
+def initialize () {
+	subscribe (washerContact, "contact", washerHandler)
+	state.cycleSeconds = normalWashLength * 60
+	//log.debug "init:  cycleSeconds = $state.cycleSeconds"
 }
 
-def washerHandler(evt) {
+def washerHandler (evt) {
+	//log.debug "washerHandler: $evt.value"
     if (evt.value == "open") {
-      // contact was opened, must be doing laundry.  Need to time it.
-      log.debug "Contact is ${evt.value}"
-	  state.startDate = now()
-	  log.debug "state.startDate = ${state.startDate}"
-	  state.washDay = true // going to shortcut the sensor so that every opening equates to a washday; our washer doesn't vibrate enough to stay open for long
+	  state.startDate = now ()
+	  log.debug "washerHandler:  $notifyTime: $washerContact.label opened at $state.startDate"
+	  //runOnce (notifyTime, notifyHandler ("Don't forget to check the washer. $notifyTime: $washerContact.label opened at $state.startDate"))
+	  //runIn (30, notifyHandler ("Test -- washer"))
   }
   else {
-      // contact was closed, make note of the time and tell the app to run later and check how long we ran
-      log.debug "Contact is ${evt.value}"
-	  state.stopDate = now()
-	  log.debug "state.stopDate = ${state.stopDate}"
-	  def washLength = state.stopDate - state.startDate
-	  if (washLength >= normalWashLength) {
-		  state.washDay = true
+	  state.stopDate = now ()
+	  def washLength = (state.stopDate - state.startDate) / 1000
+      log.debug "washerHandler:  washLength = $washLength seconds. state.cycleSeconds = $state.cycleSeconds"
+	  if (washLength >= state.cycleSeconds) {
+		  log.debug "washerHandler: washLength > state.cycleSeconds"
+		  runOnce (notifyTime, notifyHandler ("Don't forget to check the washer."))
 	  } 
-	  else {		  
-		  // the movement wasn't long enough to be considered a wash day
-		  log.debug "Movement stopped, but was shorter than a wash cycle.  washLength = $washLength and normalWashLength = $normalWashLength"
-	  }		  
    }
 }
 
-def notificationHandler(evt) {
-	// this is where I'll decide how to handle what happens at the user's specified time
-	log.debug "We're inside the notification handler."
-	if (state.washDay) then {
-		if (location.contactBookEnabled && recipients) {
-			log.debug "Contact Book enabled!"
-		    sendNotificationToContacts("Don't forget to check the washer.", recipients)
-		} 
-	    else if (phone) { 
-	    	// check that the user did select a phone number
-			log.debug "Contact Book not enabled."
-		    sendSms(phone, "Don't forget to check the washer.")
-		}
-		state.washDay = false // resetting the flag for tomorrow
+def notifyHandler (msg) {
+	log.debug "notifyHandler:  activated"
+	if (location.contactBookEnabled && recipients) {
+	    sendNotificationToContacts (msg, recipients)
 	} 
-	else {
-		// didn't do any wash today; nothing todo today.
-		log.debug "Didn't do any wash today.  state.washDay = $state.WashDay"
+    else if (phone) { 
+	    sendSms (phone, msg)
 	}
 }
